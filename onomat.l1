@@ -57,12 +57,12 @@
   (list (+ (room-x room) (randint (room-width room)))
         (+ (room-y room) (randint (room-height room)))))
 
-(defn draw-room (room)
+(defn draw-room (glyph room)
   (foreach h (map (partial + (room-y room))
                   (range (room-height room)))
     (screen-write (room-x room) h
                   (list (fuse (repeat (room-width room)
-                                      PERIOD))))))
+                                      glyph))))))
 
 (defn make-player (player-position)
   player-position)
@@ -99,8 +99,11 @@
            (+ y (second delta))
            (+ (room-y room) (room-height room) -1))))
 
+(defn monster-glyph ()
+  (randchoice '(X x Ж χ)))
+
 (defn make-monster (room)
-  (list* 'X (random-position-in-room room)))
+  (list* (monster-glyph) (random-position-in-room room)))
 
 (defn monster-pos (monster) (cdr monster))
 
@@ -252,9 +255,11 @@
                        (set! player-alive ())
                        (printm (exclaim '(YOU DIED)))
                        (render-msgs (dec h))
+                       (draw-room BANG room)
+                       (draw-monster m)
                        (screen-get-key)
                        (set! continue ()))))))
-          (draw-room room)
+          (draw-room PERIOD room)
           (draw-player player)
           (foreach m monsters
             (draw-monster m))
@@ -277,7 +282,7 @@
                 ((= k 'b) (move-if-valid '(-1 1)))
                 ((= k 'n) (move-if-valid '(1 1)))
                 ((= k 't) (teleport))))
-            (draw-room room)
+            (draw-room PERIOD room)
             (draw-player player)
             (update-monsters!)))
         (catch e
