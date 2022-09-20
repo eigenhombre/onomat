@@ -1,6 +1,6 @@
 # O N O M A T
 
-<img src="/onomat.png" width="600">
+<img src="/screenshot.png" width="600">
 
 A roguelike written in [l1](https://github.com/eigenhombre/l1/).
 

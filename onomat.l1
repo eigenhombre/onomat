@@ -209,6 +209,8 @@
         (monsters ()))
     (with-screen
       (intro)
+      (printm '(Welcome to the Room.))
+      (printm `(Press ~QUOTE ~QMARK ~QUOTE for help.))
       (try
         (let* ((dims (screen-size))
                (w (first dims))
