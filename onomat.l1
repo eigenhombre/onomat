@@ -227,6 +227,13 @@
                       (n                ~C down and right)
                       (t                ~C teleport (dangerous!)))))
 
+(defn clear-box ()
+  (fill-box SPACE
+            (inc MSGBOX-MIN-X)
+            (inc MSGBOX-MIN-Y)
+            (inc MSGBOX-MAX-X)
+            (inc MSGBOX-MAX-Y)))
+
 (defn main ()
   (let ((player-alive t)
         (continue t)
@@ -261,13 +268,6 @@
                    (add-monster!)
                    (add-monster!)
                    (set! player (random-position-in-room room))))
-               (clear-box
-                 (lambda ()
-                   (fill-box SPACE
-                             (inc MSGBOX-MIN-X)
-                             (inc MSGBOX-MIN-Y)
-                             (inc MSGBOX-MAX-X)
-                             (inc MSGBOX-MAX-Y))))
                (dohelp
                  (lambda ()
                    (let ((save-msgs msgbox-msgs))
@@ -292,11 +292,6 @@
                                 (= (monster-y m)
                                    (player-y player)))
                        (set! player-alive ())
-                       (printm (exclaim '(YOU DIED)))
-                       (render-msgs (dec h))
-                       (draw-room BANG room)
-                       (draw-monster m)
-                       (screen-get-key)
                        (set! continue ()))))))
           (draw-room PERIOD room)
           (draw-player player)
@@ -321,10 +316,19 @@
                 ((= k 'b) (move-if-valid '(-1 1)))
                 ((= k 'n) (move-if-valid '(1 1)))
                 ((= k 't) (teleport))
-                ((= k '?) (dohelp))))
-            (draw-room PERIOD room)
-            (draw-player player)
-            (update-monsters!)))
+                ((= k '?) (dohelp)))
+              (when-not (= k '?)
+                (draw-room PERIOD room)
+                (draw-player player)
+                (update-monsters!))))
+          (when-not player-alive
+            (printm (exclaim '(YOU DIED)))
+            (render-msgs (dec h))
+            (screen-write (player-x player) (player-y player) '(%))
+            (screen-get-key)
+            (printm '(Press any key...))
+            (render-msgs (dec h))
+            (screen-get-key)))
         (catch e
           (screen-end)
           (println e))))
