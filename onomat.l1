@@ -100,7 +100,7 @@
            (+ (room-y room) (room-height room) -1))))
 
 (defn monster-glyph ()
-  (randchoice '(X x Ж χ)))
+  (randchoice '(X x Ж χ ⤬ 𝗑)))
 
 (defn make-monster (room)
   (list* (monster-glyph) (random-position-in-room room)))
@@ -181,11 +181,16 @@
     (foreach p points
       (screen-write (car p) (cadr p) (list chratom)))))
 
-(defn draw-box (chratom x1 y1 x2 y2)
-  (draw-line chratom x1 y1 x1 y2)
-  (draw-line chratom x1 y2 x2 y2)
-  (draw-line chratom x2 y1 x2 y2)
-  (draw-line chratom x1 y1 x2 y1))
+(defn draw-box (glyph x1 y1 x2 y2)
+  (draw-line glyph x1 y1 x1 y2)
+  (draw-line glyph x1 y2 x2 y2)
+  (draw-line glyph x2 y1 x2 y2)
+  (draw-line glyph x1 y1 x2 y1))
+
+(defn fill-box (glyph x1 y1 x2 y2)
+  (foreach h (map (partial + y1)
+                  (range (- y2 y1)))
+    (screen-write x1 h (list (fuse (repeat (- x2 x1) glyph))))))
 
 (def msgbox-msgs ())
 
@@ -205,6 +210,23 @@
 (defn printm (x)
   (append-circular! x msgbox-msgs))
 
+(defn hkeyline (key msg)
+  `(~key ~COLON ~@msg))
+
+(let ((C COLON))
+  (def help-message `((~QMARK           ~C this message)
+                      (q                ~C quit)
+                      (~PERIOD          ~C wait)
+                      (h or left arrow  ~C left)
+                      (l or right arrow ~C right)
+                      (k or up arrow    ~C up)
+                      (j or down arrow  ~C down)
+                      (b                ~C down and left)
+                      (y                ~C up and left)
+                      (u                ~C up and right)
+                      (n                ~C down and right)
+                      (t                ~C teleport (dangerous!)))))
+
 (defn main ()
   (let ((player-alive t)
         (continue t)
@@ -212,7 +234,7 @@
         (monsters ()))
     (with-screen
       (intro)
-      (printm '(Welcome to the Room.))
+      (printm '(Welcome to The Room.))
       (printm `(Press ~QUOTE ~QMARK ~QUOTE for help.))
       (try
         (let* ((dims (screen-size))
@@ -239,6 +261,23 @@
                    (add-monster!)
                    (add-monster!)
                    (set! player (random-position-in-room room))))
+               (clear-box
+                 (lambda ()
+                   (fill-box SPACE
+                             (inc MSGBOX-MIN-X)
+                             (inc MSGBOX-MIN-Y)
+                             (inc MSGBOX-MAX-X)
+                             (inc MSGBOX-MAX-Y))))
+               (dohelp
+                 (lambda ()
+                   (let ((save-msgs msgbox-msgs))
+                     (clear-box)
+                     (set! msgbox-msgs help-message)
+                     (render-msgs (dec h))
+                     (screen-get-key)
+                     (clear-box)
+                     (set! msgbox-msgs save-msgs)
+                     (render-msgs (dec h)))))
                (update-monsters!
                  (lambda ()
                    (when (zero? (randint 5))
@@ -281,7 +320,8 @@
                 ((= k 'u) (move-if-valid '(1 -1)))
                 ((= k 'b) (move-if-valid '(-1 1)))
                 ((= k 'n) (move-if-valid '(1 1)))
-                ((= k 't) (teleport))))
+                ((= k 't) (teleport))
+                ((= k '?) (dohelp))))
             (draw-room PERIOD room)
             (draw-player player)
             (update-monsters!)))
