@@ -14,3 +14,7 @@ your path.  Check out and `cd` into this repository, then:
 or, if on Mac or Linux,
 
     ./onomat.l1
+
+# Playthrough video
+
+[![asciicast](https://asciinema.org/a/jBHSS75WHwcMm0wCqwZ2kIjFS.svg)](https://asciinema.org/a/jBHSS75WHwcMm0wCqwZ2kIjFS)
